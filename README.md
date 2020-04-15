@@ -5,14 +5,69 @@
 不是大而全的文档，而是对Java Dev一份划重点指南
 kotlin的版本
 kotlin koans
-还是要讲一点基础：强类型，静态类型，声明变量，string template
-
-:bell:**注意**:bell:
-> Kotlin中类型后置，无论是变量、参数还是返回值的类型，都是放在签名后面，通过:分隔。
 -->
 
+## 语法和控制流[Syntax & Control Flow]
+### 基本语法[Basic Syntax]
+```Kotlin
+// 声明一个不可变的整型
+val immutableInt: Int = 1
+
+// 声明一个可变的长整型，省略类型，由编译器推断
+var mutableLong = 1L
+
+// 声明浮点数
+val iAmDouble = 1.1
+val iAmFloat = 1.1F
+
+// 可以加_增强可读性
+val oneBillion: Int = 1_000_000_000
+
+// 没有默认转换[Implicit Conversion]
+/*
+    Type mismatch.
+    Required:
+    Long
+    Found:
+    Int
+ */
+//val aLong: Long = oneBillion
+/*
+    Operator '==' cannot be applied to 'Int' and 'Long'
+ */
+//val isEquals: Boolean = oneBillion == aLong
+// 使用显式转换[Explicit Conversion]
+val convertToLong: Long = oneBillion.toLong()
+
+// 使用字符串
+val hello: String = "Hello Kotlin\n"
+val multilineString = """
+    Hello 
+    Kotlin
+""".trimIndent()
+val useStringTemplate = "I have $oneBillion dollar."
+val callMethodInTemplate = "1B plus 1 is ${oneBillion + 1}"
+
+// main函数是程序入口，可以省略args参数
+//fun main(args: Array<String>) {
+fun main() {
+    // 字符串是不可变的，生成新的字符串
+    val helloAgain = hello + ""
+    // Identity, false
+    println(hello === helloAgain)
+    // Equality, true
+    println(hello == helloAgain)
+}
+```
+:bell:**注意**:bell:
+> Kotlin中类型后置，无论是变量、函数参数还是函数返回值的类型，都是放在签名后面，通过:分隔。前置放的都是修饰符，比如val、var、public等。
+
+和Java不同名，Kotlin的变量、函数不要求一定放在类里面，可以放在顶层[Top Level]；同时，单个文件可以包含多个类，文件名也不强制要求与类的名称对应。后面会有单独的章节讲述Kotlin的代码规范。
+
+### 控制流
+
 ## 函数[Function]
-为什么把函数的内容放在了最前面，因为真香:smile:。
+为什么把函数的内容放在了其他章节前面，因为真香:smile:。
 
 ### 函数声明[Function Declaration]
 Kotlin的函数用fun关键字声明，有如下两种声明方式：
@@ -137,7 +192,7 @@ fun main() {
     }
 }
 ```
-Surprise!因为Kotlin的Lambda表达式创建的是函数类型，本身是没有函数scope的，所以这里的return是外围函数（也就是main函数）的return，返回类型当然对不上。Kotlin提供了标签[Label]的方式来解决这个问题：
+Surprise!因为Kotlin的Lambda表达式创建的是函数类型实例，并没有函数scope，所以这里的return是外围函数（也就是main函数）的return，返回类型当然对不上。Kotlin提供了标签[Label]的方式来解决这个问题：
 ```Kotlin
 fun main() {
     intArrayOf(1, 2, 3).filter {
