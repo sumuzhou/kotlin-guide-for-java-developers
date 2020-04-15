@@ -43,7 +43,7 @@ fun printHello(name: String) = println(sayHelloTo(name))
 ### 高阶函数与Lambda[Higher-Order Function & Lambda]
 函数在Kotlin中是一等公民，意味着可以把函数赋给一个变量，也可以将函数作为入参和返回值，这样形成的函数称为高阶函数（也就是说这个函数的入参或返回值是另外一个函数）。
 
-Kotlin作为静态类型语言，内建了函数类型来表示函数，比如(String) -> Int，可以通过多种方式创建函数类型：
+Kotlin作为静态类型语言，内建了函数类型来表示函数，比如(String) -> Int，可以通过多种方式创建函数类型的实例：
 ```Kotlin
 val byLambda: (String) -> Int = { s -> s.length }
 val byAnonymousFunction: (String) -> Int = fun(s: String): Int { return s.length }
