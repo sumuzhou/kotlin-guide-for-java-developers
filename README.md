@@ -330,7 +330,7 @@ fun String.countVowel() = filterNonVowel().count() // this可以省略
 println("Hello".filterNonVowel()) // eo
 println("Hello".countVowel()) // 2
 ```
-.前面的类型被称为接收者类型[Receiver Type]，在函数中接收者以this的形态出现，可以通过this访问接收者的函数和属性，this关键字可以省略。能够访问的方法和属性遵循可见性原则，后续章节会讲述。
+.前面的类型被称为接收者类型[Receiver Type]，在函数中接收者以this的形态出现，可以通过this访问接收者的方法和属性，this关键字可以省略。能够访问的方法和属性遵循可见性原则，后续章节会讲述。
 
 :+1:**最佳实践**:+1:
 > 扩展函数中的this关键字，在变量/方法较少，能一眼看出变量/方法来自接收者时可以省略，让代码更简洁。但是如果函数内使用的变量/方法较多，最好加上this，让阅读者能够轻易区分出哪些来自接收者，哪些不是。
