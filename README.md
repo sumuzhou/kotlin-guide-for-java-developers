@@ -277,16 +277,50 @@ fun main() {
     }
 }
 ```
-Surprise!因为Kotlin的Lambda表达式创建的是函数类型实例，并没有函数scope，所以这里的return是外围函数（也就是main函数）的return，返回类型当然对不上。Kotlin提供了标签[Label]的方式来解决这个问题：
+Surprise!我们看下Kotlin对return关键字的描述：“By default returns from the nearest enclosing function or anonymous function.”，很明显，Lambda表达式没有函数scope，所以这里的return是外围函数（也就是main函数）的return，返回类型当然对不上。可以用标签或者匿名函数的方式来解决这个问题：
 ```Kotlin
 fun main() {
+    // explicit label
+    intArrayOf(1, 2, 3).filter label@ {
+        val shouldFilter = it > 0
+        return@label shouldFilter
+    }
+    // default label
     intArrayOf(1, 2, 3).filter {
         val shouldFilter = it > 0
         return@filter shouldFilter
     }
+    // anonymous function
+    intArrayOf(1, 2, 3).filter(fun(i: Int): Boolean {
+        val shouldFilter = i > 0
+        return shouldFilter
+    })
 }
 ```
-这里的@filter就是标签。Kotlin中有多种场景会用到标签，这里不再展开。
+:bell:**注意**:bell:
+> 和Java不同，Kotlin的Lambda表达式没有函数scope，同样的代码会出现不一样的效果，要特别注意：
+```Java
+// Java
+// will println 1 3 4 5
+IntStream.rangeClosed(1, 5).forEach(i -> {
+    if (2 == i) return;;
+    System.out.println(i);
+});
+System.out.println("Done");
+```
+```Kotlin
+// Kotlin
+// will println 1
+(1..5).forEach {
+    if (it == 2) return
+    println(it)
+}
+println("this point is unreachable")
+```
+> Kotlin的Lambda中把main函数给return了，导致后续的语句都不会执行。
+
+:+1:**最佳实践**:+1:
+> 在Kotlin的Lambda中尽量避免写return，比如上述的return可以用filter功能代替。如果一定要写return，不要忘了带上标签。
 
 <!--
 ### 扩展函数/Extension Function
