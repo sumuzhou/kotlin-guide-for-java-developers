@@ -12,7 +12,6 @@ kotlin koans
 ```Kotlin
 // 声明一个不可变的整型
 val immutableInt: Int = 1
-
 // 声明一个可变的长整型，省略类型，由编译器推断
 var mutableLong = 1L
 
