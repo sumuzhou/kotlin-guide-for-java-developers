@@ -65,6 +65,91 @@ fun main() {
 和Java不同名，Kotlin的变量、函数不要求一定放在类里面，可以放在顶层[Top Level]；同时，单个文件可以包含多个类，文件名也不强制要求与类的名称对应。后面会有单独的章节讲述Kotlin的代码规范。
 
 ### 控制流
+Kotlin的if既可以是语句，也可以是表达式，意味着可以将if的执行结果赋给一个变量，所以我们也就不再需要三元操作符：
+```Kotlin
+val a = 1
+val b = 2
+
+var traditionalMax = a
+if (a < b) traditionalMax = b
+
+var withElseMax: Int
+if (a > b) {
+    withElseMax = a
+} else {
+    withElseMax = b
+}
+
+val expressionMax = if (a > b) a else b
+
+val blockExpressionMax = if (a > b) {
+    print("Choose a")
+    a // return value
+} else {
+    print("Choose b")
+    b // return value
+}
+```
+如果把if当作表达式，那么else语句就是必须的，因为编译器要确保一定能计算一个值出来。在if中使用表达式块时，最后一个表达式得到的结果就是整个块的返回值。
+
+当有多种情况进行分支判断时，用if就会产生大量的嵌套，而Java的switch又有诸多限制。针对这个问题，Kotlin提供了when关键字，帮助我们更好进行多分支控制。和if一样，when既可以是语句，也可以是表达式；同时when的判断对象是可选的：
+```Kotlin
+val x = 1
+// 表达式, i = 2
+val i = when(x) {
+    1, 2, "3".toInt() -> x * 2 // 值判断，可以调用函数
+    in 3..5 -> 10 // 范围判断
+    !in 6..10 -> 20 // 范围判断
+    else -> 30 // 必须
+}
+
+// 语句
+// 可以把变量scope限制在when block
+// 可以用复杂类型
+when (val list = listOf(1, 2, 3)) {
+    listOf(1, 2, 3) -> println(list.last())
+}
+
+// 不传判断对象，则每个分支的条件都是一个Boolean值
+when {
+    x < 10 -> println("less than 10")
+    x is Int -> println("of course")
+    x !is Int -> println("are you kidding")
+}
+```
+对于表达式形式的when，通常也必须加上else，除非编译器能够确认已经穷举所有可能（当判断对象是enum或者sealed class时）。
+
+Kotlin也提供了for和while循环，语法基本和Java一致。在循环中，Kotlin也支持break和continue，但值得注意的是Kotlin通过标签[Label]强化了对break和continue的控制，在嵌套循环中，可以直接跳到外部循环：
+```Kotlin
+// implicit break
+for (i in 1..5) {
+    if (i == 2) break
+    println(i)
+}
+// labeled break, same as implicit break
+anyName@ for (i in 1..5) {
+    if (i == 2) break@anyName
+    println(i)
+}
+
+// break inner loop
+// (1,1) (2,1) (3,1)
+for (i in 1..3) {
+    for (j in 1..3) {
+        if (j == 2) break
+        print("($i,$j) ")
+    }
+}
+// break outer loop
+// (1,1)
+loop@ for (i in 1..3) {
+    for (j in 1..3) {
+        if (j == 2) break@loop
+        print("($i,$j) ")
+    }
+}
+```
+标签可以用于标记任意表达式，以小写驼峰形式+@来命名。注意break和@之间没有空格。除了break和continue，return也会和标签结合起来使用，在后续章节中会讲到。
 
 ## 函数[Function]
 为什么把函数的内容放在了其他章节前面，因为真香:smile:。
@@ -232,6 +317,16 @@ on implict conversion - use explict conversion
 
 ## 类型
 type inference
+    val a = 1
+    val b = 2
+    val blockExpressionMax = foo@ if (a > b) {
+        print("Choose a")
+        return@foo a
+    } else {
+        print("Choose b")
+        return@foo b
+    }
+    println(blockExpressionMax) <- 这里就会出问题
 null safety - ? ?:
 smart cast
 
