@@ -321,10 +321,49 @@ println("this point is unreachable")
 :+1:**最佳实践**:+1:
 > 在Kotlin的Lambda中尽量避免写return，比如上述的return可以用filter功能代替。如果一定要写return，不要忘了带上标签。
 
-<!--
 ### 扩展函数/Extension Function
-extension function - 限制范围
+在Java里，如果我们想在不修改类代码的情况下扩展一个对象的功能（提供更多的方法），可以怎么做呢？简单的，可以写静态Utils函数，将对象作为入参；规范一点的，可以继承该类，或者做一个装饰器[Decorator]，后续使用这些新创建的类。说实话，都有点麻烦。Kotlin提供了扩展函数来解决这个问题：
+```Kotlin
+val vowels = setOf('a', 'e', 'i', 'o', 'u')
+fun String.filterNonVowel() = this.filter { it.toLowerCase() in vowels }
+fun String.countVowel() = filterNonVowel().count() // this可以省略
+println("Hello".filterNonVowel()) // eo
+println("Hello".countVowel()) // 2
+```
+.前面的类型被称为接收者类型[Receiver Type]，在函数中接收者以this的形态出现，可以通过this访问接收者的函数和属性，this关键字可以省略。能够访问的方法和属性遵循可见性原则，后续章节会讲述。
 
+:+1:**最佳实践**:+1:
+> 扩展函数中的this关键字，在变量/方法较少，能一眼看出变量/方法来自接收者时可以省略，让代码更简洁。但是如果函数内使用的变量/方法较多，最好加上this，让阅读者能够轻易区分出哪些来自接收者，哪些不是。
+
+:bell:**注意**:bell:
+> 扩展函数的接收者类型是静态解析的，也就是说不支持多态，只依赖编译时的声明类型，而非运行时的实际类型：
+```Kotlin
+open class Shape
+class Rectangle: Shape()
+
+fun Shape.getName() = "Shape"
+fun Rectangle.getName() = "Rectangle"
+
+fun printClassName(s: Shape) {
+    println(s.getName())
+}
+// print Shape
+printClassName(Rectangle())
+```
+
+:bell:**注意**:bell:
+> 如果扩展函数和接收者的方法都可适用时，优先使用方法：
+```Kotlin
+class Example {
+    fun printFunctionType() { println("Class method") }
+}
+fun Example.printFunctionType() { println("Extension function") }
+
+// print Class method
+Example().printFunctionType()
+```
+
+<!--
 ### 语法糖 - 重载运算符、解构、中缀函数/Syntax Sugar - Operator Overloading, Destructuring, Infix Function
 syntax sugur - operator overloading + deconstruct + infix function
 
