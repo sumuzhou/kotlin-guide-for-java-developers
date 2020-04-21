@@ -321,7 +321,7 @@ println("this point is unreachable")
 :+1:**最佳实践**:+1:
 > 在Kotlin的Lambda中尽量避免写return，比如上述的return可以用filter功能代替。如果一定要写return，不要忘了带上标签。
 
-### 扩展函数/Extension Function
+### 扩展函数[Extension Function]
 在Java里，如果我们想在不修改类代码的情况下扩展一个对象的功能（提供更多的方法），可以怎么做呢？简单的，可以写静态Utils函数，将对象作为入参；规范一点的，可以继承该类，或者做一个装饰器[Decorator]，后续使用这些新创建的类。说实话，都有点麻烦。Kotlin提供了扩展函数来解决这个问题：
 ```Kotlin
 val vowels = setOf('a', 'e', 'i', 'o', 'u')
@@ -363,10 +363,120 @@ fun Example.printFunctionType() { println("Extension function") }
 Example().printFunctionType()
 ```
 
-<!--
-### 语法糖 - 重载运算符、解构、中缀函数/Syntax Sugar - Operator Overloading, Destructuring, Infix Function
-syntax sugur - operator overloading + deconstruct + infix function
+### 语法糖：TODO、中缀函数与运算符函数[Syntax Sugar: TODO & Infix Function & Operator Function]
+Kotlin的真香很大一部分原因来自语法糖，本章讲述了和函数相关的三个语法糖，这些语法糖在Kotlin的库函数中也大量使用。
 
+* TODO
+
+在写Java代码时，无论是出于对接需要还是TDD开发，我们很可能在声明接口后，先给接口做一个Mock实现，来保证代码编译运行不会报错。这样做会遇到一些问题：
+1. 用null作为Mock返回值抛出的空指针异常信息没有指导意义，而人造数据又费时间；
+2. 除了在注释里写TODO，没有机制来跟踪这些Mock的实现。
+
+Kotlin提供了TODO函数来解决这个问题，TODO函数的返回类型是Nothing，可以用于任何的函数：
+```Kotlin
+fun main() {
+    // Exception in thread "main" kotlin.NotImplementedError: An operation is not implemented: Waiting for feedback from accounting
+    calcTaxes()
+}
+
+fun calcTaxes(): Int = TODO("Waiting for feedback from accounting")
+```
+TODO函数能够帮助我们快速实现Mock功能，并且异常信息说明了原因，IDE一般也提供了追踪的功能，无需再写注释。
+
+* 中缀函数
+
+中缀函数就是用infix关键字修饰的函数，它要求这个函数
+1. 是一个类方法或者扩展函数；
+2. 函数只有一个参数，并且这个参数不是可变长参数，也没有默认值。
+```Kotlin
+infix fun Int.shl(x: Int): Int { ... }
+// calling the function using the infix notation
+1 shl 2
+// is the same as
+1.shl(2)
+```
+:+1:**最佳实践**:+1:
+> 中缀函数的优先级低于算数操作，高于布尔操作，所以为了代码可读性，在混合时使用()来明确执行逻辑：
+
+> `1 shl 2 + 3`写成`1 shl (2 + 3)`
+
+> `a && b xor c`写成`a && (b xor c)`
+
+* 运算符函数
+
+运算符函数就是使用operator关键字修饰的函数，它的最初目的是为了重载运算符，但实际上应用范围远不止运算符。Kotlin的机制很简单，就是设置了特定语法到特定名称运算符函数的转换，当一个类实现了指定的运算符函数时，就可以有特定的语法来调用：
+```Kotlin
+fun main() {
+    // Huh?
+    // print I'm an Int, my value is 1
+    1()
+}
+
+operator fun Int.invoke() = println("I'm an Int, my value is $this")
+```
+:bell:**注意**:bell:
+> 实际代码中请不要因为fancy而滥用运算符函数，比如上面的代码，调用Int没有任何意义。
+
+常用的运算符函数如下表所示：
+| 表达式 | 转换到函数 |
+| --- | --- |
+| `a()`  | `a.invoke()` |
+| `a(i)`  | `a.invoke(i)` |
+| `a(i, j)`  | `a.invoke(i, j)` |
+| `a[i]`  | `a.get(i)` |
+| `a[i, j]`  | `a.get(i, j)` |
+| `a[i] = b` | `a.set(i, b)` |
+| `a[i, j] = b` | `a.set(i, j, b)` |
+| `a + b` | `a.plus(b)` |
+| `a - b` | `a.minus(b)` |
+| `a * b` | `a.times(b)` |
+| `a / b` | `a.div(b)` |
+| `a % b` | `a.rem(b)` |
+| `a..b ` | `a.rangeTo(b)` |
+| `a in b` | `b.contains(a)` |
+| `a !in b` | `!b.contains(a)` |
+| `a == b` | `a?.equals(b) ?: (b === null)` |
+| `a != b` | `!(a?.equals(b) ?: (b === null))` |
+| `a > b`  | `a.compareTo(b) > 0` |
+| `a < b`  | `a.compareTo(b) < 0` |
+| `a >= b` | `a.compareTo(b) >= 0` |
+| `a <= b` | `a.compareTo(b) <= 0` |
+
+除此之外，还有两组特别一点的运算符函数，解构和遍历：
+```Kotlin
+// 遍历
+operator fun Int.iterator(): MyIterator = MyIterator(this)
+class MyIterator(var i: Int) {
+    operator fun hasNext() = i > 0
+    operator fun next() = i--
+}
+// 解构
+operator fun Int.component1() = this - 1
+operator fun Int.component2() = this + 1
+// 使用
+fun main() {
+    /*
+    i=4, j=6
+    i=3, j=5
+    i=2, j=4
+    i=1, j=3
+    i=0, j=2
+     */
+    for ((i, j) in 5) println("i=$i, j=$j")
+}
+```
+解构可以支持到N个，只要增加函数即可；遍历不仅要求对象本身有运算符函数，还要求函数的返回对象拥有对应的运算符函数（可以不实现Iterator接口，只要实现运算符函数即可）。
+
+:bell:**注意**:bell:
+> 在解构Lambda表达式的参数时，请注意语法：
+```Kotlin
+{ a -> ... } // one parameter
+{ a, b -> ... } // two parameters
+{ (a, b) -> ... } // a destructured pair
+{ (a, b), c -> ... } // a destructured pair and another parameter
+```
+
+<!--
 ### 函数入参/Function Argument
 default parameter + named parameter + vararg
 
