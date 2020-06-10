@@ -476,16 +476,120 @@ fun main() {
 { (a, b), c -> ... } // a destructured pair and another parameter
 ```
 
+### 函数入参[Function Argument]
+Java的函数不支持参数默认值，一般只能通过重载来实现：
+```Java
+public String sayHello() {
+    return sayHello("Stranger");
+}
+
+public String sayHello(String name) {
+    return "Hello " + name;
+}
+```
+Kotlin提供了入参默认值，可以直接实现：
+```Kotlin
+fun sayHello(name: String = "Stranger") = "Hello $name"
+```
+在Java里面，我们遇到入参较多的函数调用时往往需要在调用和签名之间来回切换，才能理解传入参数的意义；对此，Kotlin提供了命名入参，可以增强调用处的代码可读性：
+```Kotlin
+// 定义
+fun reformat(str: String,
+             normalizeCase: Boolean,
+             upperCaseFirstLetter: Boolean,
+             divideByCamelHumps: Boolean,
+             wordSeparator: Char) {
+/*...*/
+}
+fun main() {
+    // 调用
+    reformat(str = "Hello World",
+            normalizeCase = true,
+            upperCaseFirstLetter = true,
+            divideByCamelHumps = false,
+            wordSeparator = '_'
+    )
+}
+```
+和Java一样，Kotlin也支持不定长形式的入参，并且在调用的时候可以通过扩展操作符[Spread Operator]*来便利使用。不定长入参本质上是一个数组：
+```Kotlin
+fun main() {
+    val list = arrayOf("Hello", "World")
+    // println Hello World Kotlin
+    printArgs(*list, "Kotlin")
+}
+
+fun printArgs(vararg ss: String) {
+    for (s in ss) println(s)
+}
+```
+带默认值的参数和不定长参数不一定在最后，并且可以混合使用，调用的时候需要通过命名参数来明确：
+```Kotlin
+fun main() {
+    // $ Hello %
+    // $ World %
+    printArgs(ss = *arrayOf("Hello", "World"), suffix = "%")
+    // # Hello #
+    // # World #
+    printArgs("#", "Hello", "World", suffix = "#")
+}
+
+fun printArgs(prefix: String = "$", vararg ss: String, suffix: String) {
+    for (s in ss) println("$prefix $s $suffix")
+}
+```
+:bell:**注意**:bell:
+> 从Kotlin调用Java的方法不支持命名参数，因为Java的字节码不一定保留参数的名称。
+
+### 作用域函数[Scope Function]
+Kotlin提供了一类特殊的函数，它们的目的是在一个指定的作用域中执行一段Lambda表达式，这种函数就称为作用域函数：
+```Kotlin
+fun main() {
+    val s = "Hello".apply {
+        println(length)
+    }.also {
+        println(it)
+    }.let {
+        it.plus("World")
+    }
+
+    assert("HelloWorld" == s)
+}
+```
+上述代码中，apply、also和let都是作用域函数，对应的作用域是Hello对象，可以不加对象名称，直接访问对象的属性。Kotlin常用的作用域函数如下：
+| 函数 | 对象引用 | 返回值 |
+| --- | --- | --- |
+| let | it | Lambda表达式结果 |
+| run | this | Lambda表达式结果 |
+| with | this | Lambda表达式结果 |
+| apply | this | 作用域对象 |
+| also | it | 作用域对象 |
+对于this类型的对象引用，作用域函数本质上而言就是一个无入参的扩展函数。
+
+:+1:**最佳实践**:+1:
+> 对于以it形式引用对象的作用域函数，一般在Lambda表达式中，会将对象作为整体使用，比如作为参数传递给另外的函数：
+```Kotlin
+val numbers = mutableListOf("one", "two", "three")
+numbers.map { it.length }.filter { it > 3 }.let { println(it) }
+numbers.also { println("The list elements before adding new one: $it") }.add("four")
+```
+> with函数常用于基于对象属性来进行计算，并返回结果：
+```Kotlin
+val numbers = mutableListOf("one", "two", "three")
+val firstAndLast = with(numbers) {
+    "The first element is ${first()}," +
+    " the last element is ${last()}"
+}
+```
+> apply函数返回的是对象本身，常用于对对象进行设置：
+```Kotlin
+val adam = Person("Adam").apply {
+    age = 32
+    city = "London"        
+}
+```
+
 <!--
-### 函数入参/Function Argument
-default parameter + named parameter + vararg
-
-### 作用域函数/Scope Function
-scope function
-
-### 内联函数/Inline Function
-inline function
-
 ## 基础/语法
 注释doc - 不用@param和@return
 expression vs statement - for while @label - 注意陷阱
